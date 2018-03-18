@@ -128,16 +128,4 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         }
         return atLeastOneAgrees;
     }
-
-    private static boolean selectorAgreesWith(ResolvableSelectorState selectorState, String version) {
-        ResolvedVersionConstraint versionConstraint = selectorState.getVersionConstraint();
-        if (versionConstraint == null || versionConstraint.getPreferredSelector() == null) {
-            return false;
-        }
-        VersionSelector candidateSelector = versionConstraint.getPreferredSelector();
-        return !candidateSelector.requiresMetadata()
-            && candidateSelector.canShortCircuitWhenVersionAlreadyPreselected()
-            && candidateSelector.accept(version);
-    }
-
 }
