@@ -221,7 +221,7 @@ public class DependencyGraphBuilder {
         SelectorStateResolver<ComponentState> selectorStateResolver = new SelectorStateResolver<ComponentState>(moduleConflictHandler.getResolver(), resolveState);
         ComponentState selected = null;
         try {
-            selected = selectorStateResolver.selectBest(module.getSelectors(), selector, currentSelection);
+            selected = selectorStateResolver.selectBest(module.getSelectors());
         } catch (ModuleVersionResolveException e) {
             // Ignore: failure will be retained on selector
             return;
