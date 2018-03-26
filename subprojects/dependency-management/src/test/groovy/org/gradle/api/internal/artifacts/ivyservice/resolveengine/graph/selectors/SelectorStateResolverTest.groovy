@@ -43,11 +43,12 @@ import spock.lang.Unroll
  * Unit test coverage of dependency resolution of a single module version, given a set of input selectors.
  */
 class SelectorStateResolverTest extends Specification {
+    private final TestComponentResolutionState root = new TestComponentResolutionState(DefaultModuleVersionIdentifier.newId("other", "root", "1"))
     private final componentIdResolver = new TestDependencyToComponentIdResolver()
     private final conflictResolver = new TestModuleConflictResolver()
     private final componentFactory = new TestComponentFactory()
 
-    private final SelectorStateResolver selectorStateResolver = new SelectorStateResolver(conflictResolver, componentFactory)
+    private final SelectorStateResolver selectorStateResolver = new SelectorStateResolver(conflictResolver, componentFactory, root)
 
     @Unroll
     def "resolve pair #permutation"() {

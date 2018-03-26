@@ -22,16 +22,19 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final ModuleConflictResolver conflictResolver;
     private final ComponentStateFactory<T> componentFactory;
+    private final T rootComponent;
 
-    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory) {
+    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent) {
         this.conflictResolver = conflictResolver;
         this.componentFactory = componentFactory;
+        this.rootComponent = rootComponent;
     }
 
     public T selectBest(List<? extends ResolvableSelectorState> selectors) {
@@ -42,9 +45,16 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         assert !candidates.isEmpty();
 
+        // TODO:DAZ Find a more efficient/elegant way to do this: root component has no associated selector.
+        T first = candidates.iterator().next();
+        if (first.getId().getModule().equals(rootComponent.getId().getModule())) {
+            candidates = new ArrayList<T>(candidates);
+            candidates.add(rootComponent);
+        }
+
         // If we have a single common resolution, no conflicts to resolve
         if (candidates.size() == 1) {
-            return maybeMarkRejected(candidates.iterator().next(), selectors);
+            return maybeMarkRejected(first, selectors);
         }
 
         // Perform conflict resolution
