@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
@@ -80,6 +81,10 @@ class SelectorStateResolverResults {
         if (candidate.getFailure() != null) {
             return false;
         }
-        return dep.getVersionConstraint().getPreferredSelector().accept(candidate.getModuleVersionId().getVersion());
+        VersionSelector preferredSelector = dep.getVersionConstraint().getPreferredSelector();
+        if (preferredSelector == null || !preferredSelector.canShortCircuitWhenVersionAlreadyPreselected()) {
+            return false;
+        }
+        return preferredSelector.accept(candidate.getModuleVersionId().getVersion());
     }
 }
