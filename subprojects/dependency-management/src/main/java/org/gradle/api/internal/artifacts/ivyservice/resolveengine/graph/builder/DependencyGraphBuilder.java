@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -58,7 +57,6 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -275,7 +273,7 @@ public class DependencyGraphBuilder {
     /**
      * Chooses the best out of 2 components for the module, considering all selectors for the module.
      */
-    private ComponentState chooseBest(ModuleResolveState module, SelectorState selector, ComponentState currentSelection, final ComponentState candidate) {
+    private ComponentState chooseBest(ModuleResolveState module, SelectorState selector, final ComponentState currentSelection, final ComponentState candidate) {
         if (currentSelection == candidate) {
             return candidate;
         }
@@ -286,12 +284,7 @@ public class DependencyGraphBuilder {
         }
 
         // See if all known selectors agree with the candidate selection. If so, use the candidate.
-        if (allSelectorsAgreeWith(module.getSelectors(), candidate.getVersion(), new Predicate<SelectorState>() {
-            @Override
-            public boolean apply(@Nullable SelectorState input) {
-                return !candidate.getSelectedBy().contains(input);
-            }
-        })) {
+        if (!currentSelection.isRoot() && allSelectorsAgreeWith(module.getSelectors(), candidate.getVersion())) {
             return candidate;
         }
 
@@ -472,22 +465,20 @@ public class DependencyGraphBuilder {
     /**
      * Check if all of the supplied selectors agree with the version chosen
      */
-    private static boolean allSelectorsAgreeWith(Collection<SelectorState> allSelectors, String version, Predicate<SelectorState> filter) {
+    private static boolean allSelectorsAgreeWith(Collection<SelectorState> allSelectors, String version) {
         boolean atLeastOneAgrees = false;
         for (SelectorState selectorState : allSelectors) {
-            if (filter.apply(selectorState)) {
-                ResolvedVersionConstraint versionConstraint = selectorState.getVersionConstraint();
-                if (versionConstraint != null) {
-                    VersionSelector candidateSelector = versionConstraint.getPreferredSelector();
-                    if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
-                        return false;
-                    }
-                    candidateSelector = versionConstraint.getRejectedSelector();
-                    if (candidateSelector != null && candidateSelector.accept(version)) {
-                        return false;
-                    }
-                    atLeastOneAgrees = true;
+            ResolvedVersionConstraint versionConstraint = selectorState.getVersionConstraint();
+            if (versionConstraint != null) {
+                VersionSelector candidateSelector = versionConstraint.getPreferredSelector();
+                if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
+                    return false;
                 }
+                candidateSelector = versionConstraint.getRejectedSelector();
+                if (candidateSelector != null && candidateSelector.accept(version)) {
+                    return false;
+                }
+                atLeastOneAgrees = true;
             }
         }
         return atLeastOneAgrees;
