@@ -19,6 +19,8 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
@@ -67,6 +69,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         result.assertOutputContains("Please do this manually if you want to use the Gradle UI.")
     }
 
+    @Requires(TestPrecondition.WINDOWS)
     def "wrapper prints error and fails build if downloaded zip is empty"() {
         given: "empty distribution"
         TestFile tempUnzipDir = temporaryFolder.createDir("empty-distribution")
